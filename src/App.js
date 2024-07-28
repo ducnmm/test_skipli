@@ -1,25 +1,26 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import PhoneNumberForm from './PhoneNumberForm';
+import AccessCodeForm from './AccessCodeForm';
+import Main from './components/Main';
+import FacebookPost from './components/FacebookPost';
+import GetInspired from './components/GetInspired';
+import StartFromScratch from './components/StartFromScratch';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<PhoneNumberForm />} />
+        <Route path="/verify-code" element={<AccessCodeForm />} />
+        <Route path="/home" element={<Main />} />
+        <Route path="/facebook-post" element={<FacebookPost />} />
+        <Route path="/get-inspired" element={<GetInspired />} />
+        <Route path="/start-from-scratch" element={<StartFromScratch />} />
+
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
