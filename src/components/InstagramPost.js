@@ -1,9 +1,9 @@
-// src/components/FacebookPost.js
+// src/components/InstagramPost.js
 import React, { useState } from 'react';
 import { Box, Button, Input, Select, Text, VStack, Heading, Textarea } from '@chakra-ui/react';
 import Sidebar from './Sidebar';
 
-const FacebookPost = () => {
+const InstagramPost = () => {
   const [topic, setTopic] = useState('');
   const [captionTone, setCaptionTone] = useState('');
   const [generatedCaptions, setGeneratedCaptions] = useState([]);
@@ -23,7 +23,7 @@ const FacebookPost = () => {
       <Sidebar currentPath={'/'}/>
       <Box flex="1" padding="2rem" overflowY="auto">
         <VStack spacing={6} align="start" maxWidth="600px" margin="0 auto">
-          <Heading >Facebook post</Heading>
+          <Heading >Instagram post</Heading>
           
           <Text>What topic do you want a caption for?</Text>
           <Input
@@ -69,4 +69,4 @@ const FacebookPost = () => {
   );
 };
 
-export default FacebookPost;
+export default InstagramPost;

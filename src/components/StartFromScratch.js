@@ -8,7 +8,7 @@ const StartFromScratch = () => {
   return (
     <Box display="flex" width="100vw" height="100vh" alignItems="center"
     justifyContent="center">
-      <Sidebar />
+      <Sidebar currentPath={'/'}/>
       <Box flex="1" padding="2rem" overflowY="auto">
         <VStack spacing={6} align="start" maxWidth="600px" margin="0 auto">
             <Heading>Generate unique captions from scratch</Heading>

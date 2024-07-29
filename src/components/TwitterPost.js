@@ -1,9 +1,8 @@
-// src/components/FacebookPost.js
 import React, { useState } from 'react';
-import { Box, Button, Input, Select, Text, VStack, Heading, Textarea } from '@chakra-ui/react';
+import { Box, Button, Input, Select, Text, VStack, Heading, Grid, GridItem } from '@chakra-ui/react';
 import Sidebar from './Sidebar';
 
-const FacebookPost = () => {
+const TwitterPost = () => {
   const [topic, setTopic] = useState('');
   const [captionTone, setCaptionTone] = useState('');
   const [generatedCaptions, setGeneratedCaptions] = useState([]);
@@ -18,12 +17,11 @@ const FacebookPost = () => {
   };
 
   return (
-    <Box display="flex" width="100vw" height="100vh" alignItems="center"
-    justifyContent="center">
+    <Box display="flex" width="100vw" height="100vh">
       <Sidebar currentPath={'/'}/>
-      <Box flex="1" padding="2rem" overflowY="auto">
+      <Box flex="1" padding="2rem" overflowY="auto" height="100vh">
         <VStack spacing={6} align="start" maxWidth="600px" margin="0 auto">
-          <Heading >Facebook post</Heading>
+          <Heading>Twitter post</Heading>
           
           <Text>What topic do you want a caption for?</Text>
           <Input
@@ -69,4 +67,4 @@ const FacebookPost = () => {
   );
 };
 
-export default FacebookPost;
+export default TwitterPost;
