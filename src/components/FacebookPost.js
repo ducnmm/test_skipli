@@ -1,37 +1,71 @@
 // src/components/FacebookPost.js
 import React, { useState } from 'react';
-import { Box, Button, Input, Select, Text, VStack, Heading, Textarea } from '@chakra-ui/react';
+import { Box, Button, Input, Select, Text, VStack, Heading, Alert, AlertIcon } from '@chakra-ui/react';
 import Sidebar from './Sidebar';
 
 const FacebookPost = () => {
   const [topic, setTopic] = useState('');
   const [captionTone, setCaptionTone] = useState('');
   const [generatedCaptions, setGeneratedCaptions] = useState([]);
+  const [error, setError] = useState(''); // Ensure this line is included
 
-  const handleGenerateCaption = () => {
-    // Giả lập việc tạo caption (trong thực tế, đây sẽ là một API call)
-    const newCaptions = [
-      `Introducing Skipli AI - the smarter, faster way to craft compelling content! Experience all the magic of AI-driven writing assistance and get great results with fewer headaches. #AI #ContentMarketing #Content`,
-      `Say goodbye to writer's block! #SkipliAI is now available to make creating attention-grabbing content easier than ever! Get ready to take your social media game to the next level with #AI #SocialMedia`
-    ];
-    setGeneratedCaptions(newCaptions);
+  const handleGenerateCaption = async () => {
+    try {
+      // Call the API to generate captions
+      const response = await fetch('http://localhost:4000/generatePostCaptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          socialNetwork: 'Instagram',
+          subject: topic,
+          tone: captionTone,
+        }),
+      });
+
+      if (!response.ok) {
+        // Handle HTTP errors
+        if (response.status === 400) {
+          setError('The input contains inappropriate or offensive content. Please modify your input and try again.');
+        } else {
+          setError('An unexpected error occurred. Please try again later.');
+        }
+        setGeneratedCaptions([]); // Clear captions on error
+        return;
+      }
+
+      const data = await response.json();
+
+      // Check if the API returned captions and update the state
+      if (data.captions) {
+        setGeneratedCaptions(data.captions);
+        setError(''); // Clear any previous errors
+      } else {
+        setGeneratedCaptions(['No captions generated. Please try again.']);
+        setError(''); // Clear any previous errors
+      }
+    } catch (error) {
+      console.error('Error generating captions:', error);
+      setError('Error generating captions. Please try again later.');
+      setGeneratedCaptions([]); // Clear captions on error
+    }
   };
 
   return (
-    <Box display="flex" width="100vw" height="100vh" alignItems="center"
-    justifyContent="center">
-      <Sidebar currentPath={'/'}/>
+    <Box display="flex" width="100vw" height="100vh" alignItems="center" justifyContent="center">
+      <Sidebar currentPath={'/'} />
       <Box flex="1" padding="2rem" overflowY="auto">
         <VStack spacing={6} align="start" maxWidth="600px" margin="0 auto">
-          <Heading >Facebook post</Heading>
-          
+          <Heading>Facebook post</Heading>
+
           <Text>What topic do you want a caption for?</Text>
           <Input
             placeholder="Skipli is launching SkipliAI"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
           />
-          
+
           <Text>What should your caption sound like?</Text>
           <Select
             placeholder="Select tone"
@@ -42,10 +76,17 @@ const FacebookPost = () => {
             <option value="professional">Professional</option>
             <option value="witty">Witty</option>
           </Select>
-          
+
           <Button colorScheme="blue" onClick={handleGenerateCaption}>
             Generate caption
           </Button>
+
+          {error && (
+            <Alert status="error" mb={4}>
+              <AlertIcon />
+              {error}
+            </Alert>
+          )}
 
           {generatedCaptions.length > 0 && (
             <Box width="100%">

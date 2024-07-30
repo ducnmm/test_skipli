@@ -1,19 +1,45 @@
 import React, { useState } from 'react';
-import { Box, Button, Input, Select, Text, VStack, Heading, Grid, GridItem } from '@chakra-ui/react';
+import { Box, Button, Input, Select, Text, VStack, Heading, Alert, AlertIcon } from '@chakra-ui/react';
 import Sidebar from './Sidebar';
 
 const TwitterPost = () => {
   const [topic, setTopic] = useState('');
   const [captionTone, setCaptionTone] = useState('');
   const [generatedCaptions, setGeneratedCaptions] = useState([]);
+  const [error, setError] = useState(''); // Add state for error messages
 
-  const handleGenerateCaption = () => {
-    // Giả lập việc tạo caption (trong thực tế, đây sẽ là một API call)
-    const newCaptions = [
-      `Introducing Skipli AI - the smarter, faster way to craft compelling content! Experience all the magic of AI-driven writing assistance and get great results with fewer headaches. #AI #ContentMarketing #Content`,
-      `Say goodbye to writer's block! #SkipliAI is now available to make creating attention-grabbing content easier than ever! Get ready to take your social media game to the next level with #AI #SocialMedia`
-    ];
-    setGeneratedCaptions(newCaptions);
+  const handleGenerateCaption = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/generatePostCaptions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          socialNetwork: 'Twitter',
+          subject: topic,
+          tone: captionTone,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedCaptions(data.captions);
+        setError(''); // Clear error message if successful
+      } else {
+        // Handle HTTP errors
+        if (response.status === 400) {
+          setError('The input contains inappropriate or offensive content. Please modify your input and try again');
+        } else {
+          setError('An unexpected error occurred. Please try again later.');
+        }
+        setGeneratedCaptions([]); // Clear captions on error
+      }
+    } catch (error) {
+      console.error('Error generating captions:', error);
+      setError('Error generating captions. Please try again later.');
+      setGeneratedCaptions([]); // Clear captions on error
+    }
   };
 
   return (
@@ -25,7 +51,7 @@ const TwitterPost = () => {
           
           <Text>What topic do you want a caption for?</Text>
           <Input
-            placeholder="Skipli is launching SkipliAI"
+            placeholder="Enter the topic for the post"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
           />
@@ -39,11 +65,19 @@ const TwitterPost = () => {
             <option value="friendly">Friendly</option>
             <option value="professional">Professional</option>
             <option value="witty">Witty</option>
+            <option value="exciting">Exciting</option>
           </Select>
           
           <Button colorScheme="blue" onClick={handleGenerateCaption}>
             Generate caption
           </Button>
+
+          {error && (
+            <Alert status="error" mb={4}>
+              <AlertIcon />
+              {error}
+            </Alert>
+          )}
 
           {generatedCaptions.length > 0 && (
             <Box width="100%">

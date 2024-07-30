@@ -2,6 +2,7 @@
 
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, getDoc } = require('firebase/firestore');
+const { getAuth, RecaptchaVerifier } = require('firebase/auth');
 
 // Firebase configuration
 const firebaseConfig = {
@@ -17,7 +18,21 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app); // Initialize Firebase Authentication
 const UserCollection = collection(db, "Users");
 
-// Exports
-module.exports = { db, UserCollection, setDoc, getDoc, updateDoc,collection, deleteDoc, addDoc, getDocs, doc };
+// Exporting Firestore and Auth functions
+module.exports = { 
+  db, 
+  UserCollection, 
+  setDoc, 
+  getDoc, 
+  updateDoc, 
+  collection, 
+  deleteDoc, 
+  addDoc, 
+  getDocs, 
+  doc, 
+  auth, // Export Firebase Auth
+  RecaptchaVerifier // Export RecaptchaVerifier
+};
