@@ -9,11 +9,11 @@ const Main = () => {
   return (
     <Box display="flex" width="100vw" height="100vh" alignItems="center"
     justifyContent="center">
-      <Sidebar />
+      <Sidebar currentPath={'/'}/>
       <Box flex="1" padding="2rem" overflowY="auto">
         <VStack spacing={6} align="start" maxWidth="600px" margin="0 auto">
           <Heading>Skipli AI</Heading>
-          <Text fontSize="lg">Generate post ideas and captions in seconds</Text>
+          <Text>Generate post ideas and captions in seconds</Text>
           <Button
             width="100%"
             colorScheme="blue"
