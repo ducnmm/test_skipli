@@ -1,18 +1,40 @@
 import React, { useState } from 'react';
-import { Box, Button, Heading, Input, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Heading, Input, Text, VStack, Alert, AlertIcon } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 
 const GetInspired = () => {
   const [topic, setTopic] = useState('');
+  const [error, setError] = useState(''); // Add state for error messages
   const navigate = useNavigate();
 
-  const handleGenerateIdeas = () => {
-    // Implement idea generation logic here
-    console.log('Generating ideas for:', topic);
-    
-    // Navigate to the generated ideas screen
-    navigate('/ideas');
+  const handleGenerateIdeas = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/getPostIdeas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ topic }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Store ideas in localStorage or context if needed
+        localStorage.setItem('postIdeas', JSON.stringify(data.ideas));
+        navigate('/ideas');
+      } else {
+        // Handle HTTP errors
+        if (response.status === 400) {
+          setError('The input contains inappropriate or offensive content. Please modify your input and try again');
+        } else {
+          setError('An unexpected error occurred. Please try again later.');
+        }
+      }
+    } catch (error) {
+      console.error('Error generating ideas:', error);
+      setError('Error generating ideas. Please try again later.');
+    }
   };
 
   return (
@@ -33,6 +55,13 @@ const GetInspired = () => {
           <Button colorScheme="blue" onClick={handleGenerateIdeas}>
             Generate ideas
           </Button>
+
+          {error && (
+            <Alert status="error" mt={4}>
+              <AlertIcon />
+              {error}
+            </Alert>
+          )}
         </VStack>
       </Box>
     </Box>

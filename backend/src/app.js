@@ -17,16 +17,29 @@ const generateAccessCode = () => Math.floor(100000 + Math.random() * 900000).toS
 app.post('/CreateNewAccessCode', async (req, res) => {
   const phoneNumber = req.body.phoneNumber;
   const accessCode = generateAccessCode();
-  
+
   try {
+    // Save the access code to Firestore
     await setDoc(doc(UserCollection, phoneNumber), { accessCode });
-    // Implement sending access code via SMS here (e.g., using Twilio API)
-    res.send({ accessCode });
+    
+    // Send the SMS with Firebase
+    const appVerifier = window.recaptchaVerifier;
+
+    signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+      .then((confirmationResult) => {
+        // SMS sent. Handle confirmationResult here
+        res.send({ accessCode });
+      }).catch((error) => {
+        console.error("Error sending SMS:", error);
+        res.status(500).send({ error: 'Error sending SMS' });
+      });
+
   } catch (error) {
     console.error("Error creating access code:", error);
     res.status(500).send({ error: 'Error creating access code' });
   }
 });
+
 // GET: Simple Test Route
 app.get('/hi',async (req, res) => {
   res.send('Hello, World!');
@@ -54,13 +67,13 @@ app.post('/generatePostCaptions', async (req, res) => {
 
   try {
     // Tạo một prompt dựa trên các thông tin đầu vào
-    const prompt = `Generate 5 captions for a post on ${socialNetwork} about ${subject} in a ${tone} tone, without additional explanations or headings. NO introducion ,NO NO`;
+    const prompt = `Generate 5 captions for a post on ${socialNetwork} about ${subject} in a ${tone} tone, without additional explanations or headings. NO introduction, NO and do not generate indices like 1, 2, 3, etc.`;
 
     // Sử dụng mô hình Gemini 1.5 để tạo nội dung
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text();
+    const text = await response.text();
 
     // Phân chia văn bản đầu ra thành các caption riêng biệt (nếu cần)
     const captions = text.split('\n').filter(caption => caption.trim() !== '');
@@ -68,11 +81,18 @@ app.post('/generatePostCaptions', async (req, res) => {
     res.send({ captions });
   } catch (error) {
     console.error("Error generating post captions:", error);
-    res.status(500).send({ error: 'Error generating post captions' });
+
+    if (error.message.includes('SAFETY')) {
+      // Nếu lỗi liên quan đến vấn đề an toàn nội dung, trả về phản hồi với mã trạng thái 400
+      res.status(400).send({ error: 'The input contains inappropriate or offensive content. Please modify your input and try again.' });
+    } else {
+      // Xử lý các lỗi khác
+      res.status(500).send({ error: 'Error generating post captions' });
+    }
   }
 });
 
-// POST: GetPostIdeas
+
 app.post('/getPostIdeas', async (req, res) => {
   const { topic } = req.body;
 
@@ -81,7 +101,7 @@ app.post('/getPostIdeas', async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Tạo prompt cho AI yêu cầu tạo 10 ý tưởng ngắn gọn
-    const prompt = `Generate 10 creative post ideas for the topic: ${topic}. Each idea should be about 10 words long and separated by a newline.`;
+    const prompt = `Generate 5 creative post ideas for the topic: ${topic}. Each idea should be about 10 words long and separated by a newline. and do not generate indices like 1, 2, 3, etc.`;
 
     // Sử dụng AI để tạo nội dung
     const result = await model.generateContent(prompt);
@@ -98,9 +118,17 @@ app.post('/getPostIdeas', async (req, res) => {
     res.send({ ideas: limitedIdeas });
   } catch (error) {
     console.error("Error getting post ideas:", error);
-    res.status(500).send({ error: 'Error getting post ideas' });
+
+    if (error.message.includes('SAFETY')) {
+      // Nếu lỗi liên quan đến vấn đề an toàn nội dung, trả về phản hồi với mã trạng thái 400
+      res.status(400).send({ error: 'The input contains inappropriate or offensive content. Please modify your input and try again.' });
+    } else {
+      // Xử lý các lỗi khác
+      res.status(500).send({ error: 'Error getting post ideas' });
+    }
   }
 });
+
 
 // POST: CreateCaptionsFromIdeas
 app.post('/createCaptionsFromIdeas', async (req, res) => {
@@ -108,13 +136,13 @@ app.post('/createCaptionsFromIdeas', async (req, res) => {
 
   try {
     // Tạo một prompt dựa trên ý tưởng bài đăng
-    const prompt = `Generate 5 captions based on the following idea: "${idea}". Each caption should be around 100 words and include hashtags, without additional explanations or headings. NO introducion ,NO NO`;
+    const prompt = `Generate 5 captions based on the following idea: "${idea}". Each caption should be around 100 words and include hashtags, without additional explanations or headings. NO introduction, NO and do not generate indices like 1, 2, 3, etc.`;
 
     // Sử dụng mô hình Gemini 1.5 để tạo nội dung
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text();
+    const text = await response.text();
 
     // Phân chia văn bản đầu ra thành các caption riêng biệt và loại bỏ dòng tiêu đề
     const captions = text.split('\n').filter(caption => caption.trim() !== '').slice(0, 5);
@@ -123,7 +151,14 @@ app.post('/createCaptionsFromIdeas', async (req, res) => {
     res.send({ captions });
   } catch (error) {
     console.error('Error generating captions from ideas:', error);
-    res.status(500).send({ error: 'Error generating captions from ideas' });
+
+    if (error.message.includes('SAFETY')) {
+      // Nếu lỗi liên quan đến vấn đề an toàn nội dung, trả về phản hồi với mã trạng thái 400
+      res.status(400).send({ error: 'The input contains inappropriate or offensive content. Please modify your input and try again.' });
+    } else {
+      // Xử lý các lỗi khác
+      res.status(500).send({ error: 'Error generating captions from ideas' });
+    }
   }
 });
 

@@ -1,3 +1,4 @@
+// src/components/AccessCodeForm.js
 import React, { useState } from 'react';
 import { Box, Button, Input, Text, VStack } from '@chakra-ui/react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -7,10 +8,11 @@ const AccessCodeForm = () => {
   const navigate = useNavigate();
   const { phoneNumber } = location.state || {};
   const [accessCode, setAccessCode] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmitCode = async () => {
     try {
-      const response = await fetch('http://localhost:5000/verify-code', {
+      const response = await fetch('http://localhost:4000/validate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -19,14 +21,16 @@ const AccessCodeForm = () => {
       });
 
       const data = await response.json();
-      if (response.ok) {
+      
+      if (response.ok && data.success) {
         alert('Access code verified!');
         navigate('/'); // Redirect to a different route after successful verification
       } else {
-        alert(data.message);
+        setError('Invalid access code. Please try again.');
       }
     } catch (error) {
       console.error('Error verifying code:', error);
+      setError('Error verifying code. Please try again later.');
     }
   };
 
@@ -54,6 +58,7 @@ const AccessCodeForm = () => {
           <Button colorScheme="blue" onClick={handleSubmitCode}>
             Submit
           </Button>
+          {error && <Text color="red.500">{error}</Text>}
         </VStack>
       </Box>
     </Box>
